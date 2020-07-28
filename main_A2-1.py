@@ -20,7 +20,7 @@ BalloonStaircaseA(('1'),
 		balloonDirections=[BalloonTrial.up,BalloonTrial.down],
 		viewDirections=[BalloonTrial.forward,BalloonTrial.back],
 		viewSpeed=.5,
-		expSet='A2-1a'),
+		expSet='A2-1b'),
 	foldername=directory)
 
 BalloonStaircaseA(('2'), 
@@ -28,7 +28,7 @@ BalloonStaircaseA(('2'),
 		balloonDirections=[BalloonTrial.left,BalloonTrial.right],
 		viewDirections=[BalloonTrial.forward,BalloonTrial.back],
 		viewSpeed=.5,
-		expSet='A2-1a'),
+		expSet='A2-1b'),
 	foldername=directory)
 		
 BalloonStaircaseA(('3'), 
@@ -36,7 +36,7 @@ BalloonStaircaseA(('3'),
 		balloonDirections=[BalloonTrial.forward,BalloonTrial.back],
 		viewDirections=[BalloonTrial.forward,BalloonTrial.back],
 		viewSpeed=.5,
-		expSet='A2-1a'),
+		expSet='A2-1b'),
 	foldername=directory)
 
 
