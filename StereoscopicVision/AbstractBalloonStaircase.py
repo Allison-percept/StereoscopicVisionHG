@@ -23,6 +23,8 @@ class AbstractBalloonStaircase:
 	objDirection = []
 	viewDirection = []
 	dataFile = None
+	dinput = None
+	joy = None
 	
 	#----static----
 	
@@ -40,6 +42,18 @@ class AbstractBalloonStaircase:
 		self.createOutputFiles()
 		self.createStaircase()
 		self.register()
+		
+		# Load DirectInput plug-in
+		dinput = viz.add('DirectInput.dle')
+
+		# Add first available joystick
+		joy = dinput.addJoystick()
+		
+		# Set dead zone threshold so small movements of joystick are ignored
+		joy.setDeadZone(0.2)
+		
+		self.dinput = dinput
+		self.joy = joy
 	
 	
 	def createOutputFiles(self):
@@ -50,7 +64,7 @@ class AbstractBalloonStaircase:
 
 
 		# make a text file to save data
-		self.fileName = expInfo['observer'] + expInfo['dateStr'] +'_'+ self.suffix
+		self.fileName = expInfo['observer'] + expInfo['dateStr'] +'_'+ self.bt.mode +'_'+self.suffix
 		
 		#create folder if not exist
 		if (self.foldername!=""):
@@ -80,7 +94,7 @@ class AbstractBalloonStaircase:
 		return self.staircase
 
 	def savePickle(self):
-		self.staircase.saveAsPickle(os.path.join(self.foldername, "QuestPickle" +'_'+ self.suffix))
+		self.staircase.saveAsPickle(os.path.join(self.foldername, "QuestPickle" +'_'+ self.bt.mode +'_'+ self.suffix))
 
 
 	@staticmethod

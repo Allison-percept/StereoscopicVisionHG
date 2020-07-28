@@ -6,14 +6,14 @@ from Tkinter import Tk
 from tkinter.filedialog import askopenfilenames
 
 # set bins
-bins = 5
+bins = 10
 
-#expected_threshold = 0.625
-expected_threshold = 0.5
-#expected_min = 0.25
-expected_min = 0
+expected_threshold = 0.625
+#expected_threshold = 0.5
+expected_min = 0.25
+#expected_min = 0
 curve_start = 0.0
-curve_end = 0.5
+curve_end = 0.6
 
 
 
@@ -32,11 +32,7 @@ for thisFileName in files:
     allIntensities.append( thisDat.intensities )
     allResponses.append( thisDat.data )
 
-#add 1 to the values of intensities to prevent numpy error
-#def plusOne(x):
-#    return x+1
-#allIntensities[0] = map(plusOne, allIntensities[0])
-#print(allIntensities)
+
 
 #keep both list the same length
 if(len(allIntensities[0]) > len(allResponses[0])):

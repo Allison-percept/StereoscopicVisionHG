@@ -8,9 +8,15 @@ import os
 from os import path
 from BalloonTrial import *
 from AbstractBalloonStaircase import *
+import constants
+from expParameters import initialStimulusSpeed
 
 
 class BalloonStaircaseA(AbstractBalloonStaircase):
+	initialSpeed = initialStimulusSpeed
+	
+	def setInitialSpeed(self,val):
+		self.initialSpeed = val
 
 	def createOutputFileHeader(self):
 		#the columns header of output file in csv format
@@ -18,7 +24,7 @@ class BalloonStaircaseA(AbstractBalloonStaircase):
 
 	def createStaircase(self):
 		# create the staircase handler
-		self.staircase = data.QuestHandler(startVal=0.5, 
+		self.staircase = data.QuestHandler(startVal=self.initialSpeed, 
 							startValSd=0.5,
 							pThreshold=0.625,
 							gamma=0.25,
@@ -50,6 +56,8 @@ class BalloonStaircaseA(AbstractBalloonStaircase):
 		
 		thisIncrement = staircase.next()
 		self.thisIncrement = thisIncrement
+		print thisIncrement
+		
 		
 		#pick the object to move
 		self.targetIndex = random.randrange(len(balloons))
@@ -58,6 +66,7 @@ class BalloonStaircaseA(AbstractBalloonStaircase):
 		#pick the direction of object
 		objDirectionIndex = bt.getRandomBalloonDirIndex()
 		self.objDirection = bt.directionArray[objDirectionIndex]
+		print self.objDirection
 		
 		#pick the direction of view
 		viewDirectionIndex = bt.getRandomViewDirIndex()
@@ -90,36 +99,72 @@ class BalloonStaircaseA(AbstractBalloonStaircase):
 			viewDirection = bs.viewDirection
 			
 			thisIndex = None		
-			
-			#Wait for a keypress.
-			respKey = yield viztask.waitKeyDown( [viz.KEY_KP_1,viz.KEY_KP_7,viz.KEY_KP_9,viz.KEY_KP_3] )
-			
-			if respKey.key == viz.KEY_KP_3:
-				thisIndex = 0
-				if(targetIndex==0):
-					thisResp = 1
-				else: 
-					thisResp = 0
-			if respKey.key == viz.KEY_KP_9:
-				thisIndex = 1
-				if(targetIndex==1):
-					thisResp = 1
-				else: 
-					thisResp = 0
-			if respKey.key == viz.KEY_KP_1:
-				thisIndex = 2
-				if(targetIndex==2):
-					thisResp = 1
-				else: 
-					thisResp = 0
-			if respKey.key == viz.KEY_KP_7:
-				thisIndex = 3
-				if(targetIndex==3):
-					thisResp = 1
-				else: 
-					thisResp = 0
+			thisResp = -1
+			if(bt.device == constants.MONITOR):
+				#Wait for a keypress.
+				respKey = yield viztask.waitKeyDown( [viz.KEY_KP_1,viz.KEY_KP_7,viz.KEY_KP_9,viz.KEY_KP_3] )
+				
+				if respKey.key == viz.KEY_KP_3:
+					thisIndex = 0
+					if(targetIndex==0):
+						thisResp = 1
+					else: 
+						thisResp = 0
+				if respKey.key == viz.KEY_KP_9:
+					thisIndex = 1
+					if(targetIndex==1):
+						thisResp = 1
+					else: 
+						thisResp = 0
+				if respKey.key == viz.KEY_KP_1:
+					thisIndex = 2
+					if(targetIndex==2):
+						thisResp = 1
+					else: 
+						thisResp = 0
+				if respKey.key == viz.KEY_KP_7:
+					thisIndex = 3
+					if(targetIndex==3):
+						thisResp = 1
+					else: 
+						thisResp = 0
+				print respKey.key
+			else:
+				print "waiting joystick button press"
+				#Wait for a joystick keypress.
+				respButton = yield viztask.waitSensorDown( None, None )
+				print respButton.button
+				#		3
+				#	0		2
+				#		1
+				
+				if respButton.button == 0:
+					thisIndex = 0
+					if(targetIndex==0):
+						thisResp = 1
+					else: 
+						thisResp = 0
+				if respButton.button == 1:
+					thisIndex = 1
+					if(targetIndex==1):
+						thisResp = 1
+					else: 
+						thisResp = 0
+				if respButton.button == 2:
+					thisIndex = 2
+					if(targetIndex==2):
+						thisResp = 1
+					else: 
+						thisResp = 0
+				if respButton.button == 3:
+					thisIndex = 3
+					if(targetIndex==3):
+						thisResp = 1
+					else: 
+						thisResp = 0
+					
 			# add the data to the staircase so it can calculate the next level
-			print respKey.key
+			
 			staircase.addResponse(thisResp)
 			print targetIndex
 			print thisIncrement
@@ -136,7 +181,7 @@ class BalloonStaircaseA(AbstractBalloonStaircase):
 #-----
 
 if __name__ == "__main__":
-	BalloonStaircaseA('test1', BalloonTrial())
+	BalloonStaircaseA('MONO', BalloonTrial(device=constants.MONITOR, mode=constants.STEREO))
 	BalloonStaircaseA.start()
 
 	

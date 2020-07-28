@@ -8,6 +8,7 @@ from BalloonTrial import *
 from Tkinter import Tk
 from tkinter.filedialog import askdirectory
 
+import constants
 
 #Open a dialog box to select directory from
 #Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
@@ -21,7 +22,9 @@ BalloonStaircaseA(('1'),
 		viewDirections=[BalloonTrial.forward,BalloonTrial.back],
 		viewSpeed=.5,
 		expSet='A1',
-		startWaitTime = .5),
+		startWaitTime = .5,
+		device=constants.HMD, 
+		mode=constants.STEREO),
 	foldername=directory)
 
 BalloonStaircaseA(('2'), 
@@ -30,7 +33,9 @@ BalloonStaircaseA(('2'),
 		viewDirections=[BalloonTrial.forward,BalloonTrial.back],
 		viewSpeed=.5,
 		expSet='A1',
-		startWaitTime = .5),
+		startWaitTime = .5,
+		device=constants.HMD, 
+		mode=constants.STEREO),
 	foldername=directory)
 		
 BalloonStaircaseA(('3'), 
@@ -39,7 +44,9 @@ BalloonStaircaseA(('3'),
 		viewDirections=[BalloonTrial.forward,BalloonTrial.back],
 		viewSpeed=.5,
 		expSet='A1',
-		startWaitTime = .5),
+		startWaitTime = .5,
+		device=constants.HMD, 
+		mode=constants.STEREO),
 	foldername=directory)
 
 
