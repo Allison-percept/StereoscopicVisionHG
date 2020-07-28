@@ -83,9 +83,9 @@ st3d = BalloonStaircaseA(('DEP_D'),
 	foldername=directory)
 
 #set initial speed for upward staircases
-st1u.setInitialSpeed(0.1)
-st2u.setInitialSpeed(0.1)
-st3u.setInitialSpeed(0.1)
+st1u.setInitialSpeed(0.01)
+st2u.setInitialSpeed(0.01)
+st3u.setInitialSpeed(0.01)
 
 BalloonTrial.startPosition = [0,0.3,-2]
 
