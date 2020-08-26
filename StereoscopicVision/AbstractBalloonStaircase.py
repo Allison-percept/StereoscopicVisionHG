@@ -82,12 +82,21 @@ class AbstractBalloonStaircase:
 
 	@abstractmethod
 	def createStaircase(self):
+		"""
+		create the psychopy staircase
+		"""
 		pass
 	
 	def register(self):
+		"""
+		register the staricase on the staircase list
+		"""
 		AbstractBalloonStaircase.bStaircases.append(self)
 	
 	def unRegister(self):
+		"""
+		unregister the staircase on the staircase list
+		"""
 		AbstractBalloonStaircase.bStaircases.remove(self)
 	
 	def getStaircase(self):
@@ -99,6 +108,9 @@ class AbstractBalloonStaircase:
 
 	@staticmethod
 	def pressToStart():
+		"""
+		set a trigger that wait for keypress to start
+		"""
 		print('wait for keypress to start...')
 		def pressToStartScheduler():
 			#Wait for any keypress.
@@ -113,6 +125,9 @@ class AbstractBalloonStaircase:
 
 	@staticmethod
 	def start():
+		"""
+		get the first staircase and start the experiment. Calls pressToStart()
+		"""
 		#make sure we have staircases initialized
 		if (not AbstractBalloonStaircase.bStaircases):
 			print("No staircase to start!")
@@ -125,6 +140,9 @@ class AbstractBalloonStaircase:
 
 	@staticmethod
 	def pressToQuit():
+		"""
+		Set a trigger that wait for press of Q or Escape key to quit. Before quitting, pickle file will be saved.
+		"""
 		print('press q to abort')
 		def pressToQuitScheduler():
 			staircases = AbstractBalloonStaircase.bStaircases
@@ -145,6 +163,9 @@ class AbstractBalloonStaircase:
 	
 	@abstractmethod
 	def trial(self):
+		"""
+		Method for the activities within a trial.
+		"""
 		pass
 
 

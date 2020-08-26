@@ -4,6 +4,9 @@ from psychopy.tools.filetools import fromFile
 import pylab
 from Tkinter import Tk
 from tkinter.filedialog import askopenfilenames
+import ntpath
+import numpy as np
+import math as math
 
 # set bins
 bins = 10
@@ -34,43 +37,140 @@ for thisFileName in files:
 
 
 
-#keep both list the same length
-if(len(allIntensities[0]) > len(allResponses[0])):
-    del allIntensities[0][-1]
+
 
 
 #plot each staircase
 fig = pylab.figure(num='Analysis',figsize=[16,8])
-pylab.subplot(121)
+pylab.subplot(131)
 colors = 'brgkcmbrgkcm'
 lines, names = [],[]
+
+#colors = ['b','g','r']
+
+fileNameList = []
+
+#get filenames of the files
+for fileN, thisStair in enumerate(allIntensities):
+    fullPath = files[fileN]
+    fileName = ntpath.basename(fullPath)
+    fileNameList.append(fileName)
+
+
+
 for fileN, thisStair in enumerate(allIntensities):
     #lines.extend(pylab.plot(thisStair))
-    #names = files[fileN]
-    pylab.plot(thisStair, label=files[fileN])
-#pylab.legend()
+    fullPath = files[fileN]
+    fileName = ntpath.basename(fullPath)
+    pylab.plot(thisStair, label=fileName.split(".")[0], color=colors[fileN])
+    pylab.legend(loc='upper right')
+    pylab.xlabel('Number of Trials')
+    pylab.ylabel('Stimulus Intensity')
 
-#get combined data
-combinedInten, combinedResp, combinedN = \
-             data.functionFromStaircase(allIntensities, allResponses, bins)
 
-#fit curve - in this case using a Weibull function
-fit = data.FitWeibull(combinedInten, combinedResp, expectedMin = expected_min,sems = [1.0] * bins)
-smoothInt = pylab.arange(curve_start, curve_end, 0.001)
-smoothResp = fit.eval(smoothInt)
-thresh = fit.inverse(expected_threshold)
-print("threshold: ")
-print(thresh)
 
-#plot curve
-pylab.subplot(122)
-pylab.plot(smoothInt, smoothResp, '-')
-pylab.plot([thresh, thresh],[0,expected_threshold],'--'); pylab.plot([0, thresh],\
-[expected_threshold,expected_threshold],'--')
-pylab.title('threshold = %0.3f' %(thresh))
-#plot points
-pylab.plot(combinedInten, combinedResp, 'o')
-pylab.ylim([0,1])
+def checkFileNames(strList):
+    for str in strList:
+        if(str.find("_") == -1):
+            return False
+    return True
+
+def hasSamePrefix(str0,str1):
+    if(str0.split("_")[0] == str1.split("_")[0]):
+        return True
+    return False
+    
+
+def groupWithPrefix(str, index, strGroups):
+    if not strGroups:
+        strGroups.append([[str,index]])
+        return
+    inserted = False
+    for strGroup in strGroups:
+        if(hasSamePrefix(strGroup[0][0], str)):
+            strGroup.append([str,index])
+            inserted = True
+            break
+    if (not inserted):
+        strGroups.append([[str,index]])
+
+def getLabelfromFileName(fileName):
+    return fileName.split(".")[0].split("_")[0]
+
+
+fileGroups = []
+#get files into groups
+
+
+for index, fileName in enumerate(fileNameList):
+    groupWithPrefix(fileName, index, fileGroups)
+
+threshs=[]
+labels = []
+
+pylab.subplot(132)
+
+for groupN, group in enumerate(fileGroups):
+    groupIntensities = []
+    groupResponses = []
+    groupLabel = ""
+    for fileName, index in group:
+        intensities = allIntensities[index]
+        responses = allResponses[index]
+        
+        #keep both list the same length
+        if(len(intensities) > len(responses)):
+            del intensities[-1]
+        groupIntensities.extend(intensities)
+        groupResponses.extend(responses)
+        groupLabel = getLabelfromFileName(fileName)
+        
+    combinedInten, combinedResp, combinedN = \
+                 data.functionFromStaircase(groupIntensities, groupResponses, bins)
+                 
+    #fit curve - in this case using a Weibull function
+    fit = data.FitWeibull(combinedInten, combinedResp, expectedMin = expected_min,sems = [1.0] * bins)
+    smoothInt = pylab.arange(curve_start, curve_end, 0.001)
+    smoothResp = fit.eval(smoothInt)
+    thresh = fit.inverse(expected_threshold)
+    threshs.append(thresh)
+    labels.append(groupLabel)
+    print(fit.ssq)
+    print("Threshold: ")
+    print(thresh)
+
+    #plot curve
+    pylab.plot(smoothInt, smoothResp, '-', label=groupLabel, color=colors[groupN])
+    pylab.plot([thresh, thresh],[0,expected_threshold],'--', color=colors[groupN]); pylab.plot([0, thresh],\
+    [expected_threshold,expected_threshold],'--')
+    
+    #pylab.title('threshold = %0.3f' %(thresh))
+    #plot points
+    pylab.plot(combinedInten, combinedResp, 'o', color=colors[groupN])
+    pylab.legend(loc='upper right')
+    pylab.ylim([0,1.01])
+
+
+
+groupCount = len(fileGroups)
+
+ci = 0.1
+cis = [ci/2] * groupCount
+
+
+pylab.xlabel('Stimulus Intensity')
+pylab.ylabel('Correct Response Ratio')
+sortedThreshs = threshs[:]
+sortedThreshs.sort()
+pylab.title('thresholds = %0.3f, %0.3f, %0.3f,'  %(sortedThreshs[0], sortedThreshs[1], sortedThreshs[2]))
+
+pylab.subplot(133)
+ind = np.arange(groupCount)
+print(cis)
+
+pylab.bar(ind,threshs, 0.5,yerr=cis)
+pylab.xticks(ind,labels)
+pylab.title('Stimulus Intensity Thresholds')
 
 #register an event to terminate code when window closed
 def on_close(event):
@@ -80,6 +180,6 @@ def on_close(event):
 
 fig.canvas.mpl_connect('close_event', on_close)
 
-
+pylab.subplots_adjust(bottom=0.2,top=0.8)
 pylab.show(block=True)
 
