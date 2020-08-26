@@ -107,6 +107,9 @@ for index, fileName in enumerate(fileNameList):
 
 threshs=[]
 labels = []
+staircases = []
+lowercis = []
+uppercis = []
 
 pylab.subplot(132)
 
@@ -125,6 +128,18 @@ for groupN, group in enumerate(fileGroups):
         groupResponses.extend(responses)
         groupLabel = getLabelfromFileName(fileName)
         
+    #recreate the staircase from group
+    staircase = data.QuestHandler(startVal=groupIntensities[0], 
+                            startValSd=0.5,
+                            pThreshold=0.625,
+                            gamma=0.25,
+                            stimScale='linear',
+                            stopInterval=.1, nTrials=100, minVal=0, maxVal=1.5)
+    staircase.importData(groupIntensities,groupResponses)
+    staircases.append(staircase)
+    #get the CI
+    ci = staircase.confInterval()  
+    
     combinedInten, combinedResp, combinedN = \
                  data.functionFromStaircase(groupIntensities, groupResponses, bins)
                  
@@ -135,10 +150,14 @@ for groupN, group in enumerate(fileGroups):
     thresh = fit.inverse(expected_threshold)
     threshs.append(thresh)
     labels.append(groupLabel)
-    print(fit.ssq)
-    print("Threshold: ")
-    print(thresh)
-
+    
+    lowerError = thresh - ci[0]
+    upperError = ci[1] - thresh
+    
+    lowercis.append(lowerError)
+    uppercis.append(upperError)
+    
+    
     #plot curve
     pylab.plot(smoothInt, smoothResp, '-', label=groupLabel, color=colors[groupN])
     pylab.plot([thresh, thresh],[0,expected_threshold],'--', color=colors[groupN]); pylab.plot([0, thresh],\
@@ -153,9 +172,7 @@ for groupN, group in enumerate(fileGroups):
 
 
 groupCount = len(fileGroups)
-
-ci = 0.1
-cis = [ci/2] * groupCount
+cis = [lowercis,uppercis]
 
 
 pylab.xlabel('Stimulus Intensity')
@@ -166,6 +183,11 @@ pylab.title('thresholds = %0.3f, %0.3f, %0.3f,'  %(sortedThreshs[0], sortedThres
 
 pylab.subplot(133)
 ind = np.arange(groupCount)
+
+print("Thresholds:")
+print(threshs)
+
+print("CIs: ")
 print(cis)
 
 pylab.bar(ind,threshs, 0.5,yerr=cis)
@@ -180,6 +202,6 @@ def on_close(event):
 
 fig.canvas.mpl_connect('close_event', on_close)
 
-pylab.subplots_adjust(bottom=0.2,top=0.8)
+pylab.subplots_adjust(bottom=0.3,top=0.7)
 pylab.show(block=True)
 
