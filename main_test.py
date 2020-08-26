@@ -20,74 +20,20 @@ st1u= BalloonStaircaseA(('VER_U'),
 	BalloonTrial(
 		balloonDirections=[BalloonTrial.up,BalloonTrial.down],
 		viewDirections=[BalloonTrial.forward],
+		fovMask=False,
 		viewSpeed=2,
-		expSet='A1',
+		expSet='A2-2',
 		startWaitTime = .5,
-		device=constants.HMD, 
+		device=constants.MONITOR, 
 		mode=constants.STEREO),
 	foldername=directory)
 
-st1d = BalloonStaircaseA(('VER_D'), 
-	BalloonTrial(
-		balloonDirections=[BalloonTrial.up,BalloonTrial.down],
-		viewDirections=[BalloonTrial.forward],
-		viewSpeed=2,
-		expSet='A1',
-		startWaitTime = .5,
-		device=constants.HMD, 
-		mode=constants.STEREO),
-	foldername=directory)
-
-st2u = BalloonStaircaseA(('HOR_U'), 
-	BalloonTrial(
-		balloonDirections=[BalloonTrial.left,BalloonTrial.right],
-		viewDirections=[BalloonTrial.forward],
-		viewSpeed=.2,
-		expSet='A1',
-		startWaitTime = .5,
-		device=constants.HMD, 
-		mode=constants.STEREO),
-	foldername=directory)
-
-st2d = BalloonStaircaseA(('HOR_D'), 
-	BalloonTrial(
-		balloonDirections=[BalloonTrial.left,BalloonTrial.right],
-		viewDirections=[BalloonTrial.forward],
-		viewSpeed=.2,
-		expSet='A1',
-		startWaitTime = .5,
-		device=constants.HMD, 
-		mode=constants.STEREO),
-	foldername=directory)
-		
-st3u = BalloonStaircaseA(('DEP_U'), 
-	BalloonTrial(
-		balloonDirections=[BalloonTrial.forward,BalloonTrial.back],
-		viewDirections=[BalloonTrial.forward],
-		viewSpeed=2,
-		expSet='A1',
-		startWaitTime = .5,
-		device=constants.HMD, 
-		mode=constants.STEREO),
-	foldername=directory)
-
-st3d = BalloonStaircaseA(('DEP_D'), 
-	BalloonTrial(
-		balloonDirections=[BalloonTrial.forward,BalloonTrial.back],
-		viewDirections=[BalloonTrial.forward],
-		viewSpeed=2,
-		expSet='A1',
-		startWaitTime = .5,
-		device=constants.HMD, 
-		mode=constants.STEREO),
-	foldername=directory)
 
 #set initial speed for upward staircases
 st1u.setInitialSpeed(0.01)
-st2u.setInitialSpeed(0.01)
-st3u.setInitialSpeed(0.01)
 
-BalloonTrial.startPosition = [0,0.3,-2]
+
+
 
 #start the experiment
 BalloonStaircaseA.start()
