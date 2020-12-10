@@ -15,6 +15,11 @@ class AbstractBalloonStaircase:
 	observer = None
 	filename = ''
 	foldername = ''
+	observer = ''
+	series = ''
+	mode = ''
+	ori = ''
+	stair = ''
 	bt = None
 	staircase = None
 	thisResp = None
@@ -23,10 +28,13 @@ class AbstractBalloonStaircase:
 	objDirection = []
 	viewDirection = []
 	dataFile = None
-	dinput = None
-	joy = None
+
 	
 	#----static----
+
+	dinput = viz.add('DirectInput.dle')
+	#get the input device 
+	inputDevice = dinput.addJoystick(dinput.getJoystickDevices()[0])
 	
 	#list of all staircases
 	bStaircases = []
@@ -34,37 +42,31 @@ class AbstractBalloonStaircase:
 	#current staircase
 	currentStaircase = None
 
-	def __init__(self, suffix='', bt=BalloonTrial(), observer='hy', foldername='output'):
+	def __init__(self, bt=BalloonTrial(), observer='hy', series='A1', mode='STEREO', ori='VER', stair='U', foldername='output'):
 		self.bt = bt
-		self.suffix = suffix
 		self.observer = observer
+		self.series = series
+		self.mode = mode
+		self.ori = ori
+		self.stair = stair
 		self.foldername = foldername
+
+		self.fileName = self.getFileName()
+		
 		self.createOutputFiles()
 		self.createStaircase()
 		self.register()
 		
-		# Load DirectInput plug-in
-		dinput = viz.add('DirectInput.dle')
-
-		# Add first available joystick
-		joy = dinput.addJoystick()
 		
-		# Set dead zone threshold so small movements of joystick are ignored
-		joy.setDeadZone(0.2)
 		
-		self.dinput = dinput
-		self.joy = joy
+		self.initialize()
 	
+	def initialize(self):
+		#Things to run at initialization of a staircase
+		pass
 	
 	def createOutputFiles(self):
-		expInfo = {'observer':self.observer}
-		expInfo['dateStr'] = data.getDateStr()  # add the current time
-
-		#toFile('lastParams.pickle', expInfo)  # save params to file for next time
-
-
 		# make a text file to save data
-		self.fileName = expInfo['observer'] + expInfo['dateStr'] +'_'+ self.bt.mode +'_'+self.suffix
 		
 		#create folder if not exist
 		if (self.foldername!=""):
@@ -103,8 +105,19 @@ class AbstractBalloonStaircase:
 		return self.staircase
 
 	def savePickle(self):
-		self.staircase.saveAsPickle(os.path.join(self.foldername, "QuestPickle" +'_'+ self.bt.mode +'_'+ self.suffix))
+		self.staircase.saveAsPickle(os.path.join(self.foldername, self.getFileName()))
 
+	def getFileName(self):
+		fileName = ''
+		timestamp = data.getDateStr()
+		fileName = timestamp;
+		fileName += "_" + self.observer
+		fileName += "_" + self.series
+		fileName += "_" + self.mode
+		fileName += "_" + self.ori
+		fileName += "_" + self.stair
+
+		return fileName
 
 	@staticmethod
 	def pressToStart():

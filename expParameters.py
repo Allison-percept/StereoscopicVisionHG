@@ -1,19 +1,26 @@
 ﻿targetPositions=[]
 targetAmount = 0
 
-viewMovingSpeed = 2
+viewMovingSpeed = 1.5
 startViewPosition = [0,2,-2]
 initialStimulusSpeed = 1
 trialDuration = 1
+trialWaitTime = 0.5
+maxDisplacement = 0.05
 
+#the index of joystick starting from 0.
+joystickIndex = 1
+
+
+		
 stimuliLocations = {
 	"A1": [[-1,2,8],[0,1,8],[1,2,8],[0,3,8]],
 	"A2-1a": [[3,1,8],[3,4,8],[-3,1,8],[-3,4,8]],
 	"A2-1b": [[3,1,8],[3,4,8],[-3,1,8],[-3,4,8]],
 	"A2-2": [[-2,3,8],[0,1,8],[2,3,8],[0,5,8]],
 	"A4": [[3,1,8],[3,4,8],[-3,1,8],[-3,4,8]],
-	"B-l": [[-3,2,3]],
-	"B-r": [[3,2,3]],
+	"B-l": [[-3,2,5]],
+	"B-r": [[3,2,5]],
 }
 
 #A - detection
