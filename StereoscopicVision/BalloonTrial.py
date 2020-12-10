@@ -2,10 +2,11 @@
 import vizact
 import time
 import threading
+import viztask
 import random
 import vizconnect
 
-from expParameters import stimuliLocations, viewMovingSpeed, startViewPosition, trialDuration
+from expParameters import stimuliLocations, viewMovingSpeed, startViewPosition, trialDuration, trialWaitTime, maxDisplacement
 import vizfx.postprocess
 import constants
 # Use vizfx module to load models and generate effects
@@ -20,7 +21,7 @@ class BalloonTrial:
 	allowedViewDirection = []
 	stimuliLocations = []
 	fovMask = False
-	startWaitTime = 0
+	startWaitTime = trialWaitTime
 	
 	
 	
@@ -49,6 +50,23 @@ class BalloonTrial:
 	def setMode(mode):
 		BalloonTrial.mode = mode
 
+
+	@staticmethod
+	def applyFog(scene):
+		"""
+		Cover the entire scene with a fog, which color is the mean color of the view. 
+		"""
+		
+		#an example of scene: viz.Scene1
+		
+		#color: rgb(183, 151, 113)
+		scene.fogColor(0.72, 0.59, 0.44)
+		scene.fog(1)
+		
+	@staticmethod
+	def liftFog(scene):
+		scene.fog(0)
+
 	@staticmethod
 	def initializeRendering():
 		"""
@@ -67,22 +85,35 @@ class BalloonTrial:
 			#Increase the Field of View
 			viz.MainWindow.fov(60)
 			viz.MainView.setPosition(BalloonTrial.startPosition)
+			BalloonTrial.piazza = viz.addChild('piazza_edited2.osgb',scene=viz.MainScene)
 			
 		elif(BalloonTrial.device == constants.HMD):
 			vizconnect.go('vizconnect_rifts.py')
 			BalloonTrial.transport = vizconnect.getTransport('wandmagiccarpet')
 			BalloonTrial.transport.getNode3d().setPosition(BalloonTrial.startPosition)
+			#for stereo condition, do nothing
+			if(BalloonTrial.mode == constants.MONO):
+				window.stereo(viz.STEREO_LEFT)
+				#viz.MainWindow.stereo(viz.STEREO_RIGHT)
+			elif(BalloonTrial.mode == constants.SYN):
+				window.ipd(0)
+			BalloonTrial.piazza = viz.addChild('piazza_edited2.osgb',scene=viz.MainScene)
 			
 		elif(BalloonTrial.device == constants.EGG):
-			vizconnect.go('vizconnect_egg.py')
+			if(BalloonTrial.mode==constants.STEREO):
+				vizconnect.go('vizconnect_egg.py')
+				BalloonTrial.piazza = viz.addChild('piazza_edited2.osgb',scene=viz.MainScene)
+			elif(BalloonTrial.mode==constants.SYN):
+				vizconnect.go('vizconnect_egg_nonstereo.py')
+				BalloonTrial.piazza = viz.addChild('piazza_edited2.osgb',scene=viz.MainScene)
+			else:
+				vizconnect.go('vizconnect_egg_mono.py')
+				BalloonTrial.piazza = viz.addChild('piazza_edited2.osgb',scene=viz.Scene1)
+				viz.addChild('piazza_edited2.osgb',scene=viz.Scene2)
+				BalloonTrial.applyFog(viz.Scene2)
+			BalloonTrial.transport = vizconnect.getTransport('walking')
+			BalloonTrial.transport.getNode3d().setPosition(BalloonTrial.startPosition)
 		
-		#applying display mode conditions
-		#for stereo condition, do nothing
-		if(BalloonTrial.mode == constants.MONO):
-			viz.MainWindow.stereo(viz.STEREO_LEFT)
-			#viz.MainWindow.stereo(viz.STEREO_RIGHT)
-		elif(BalloonTrial.mode == constants.SYN):
-			viz.MainWindow.ipd(0)
 		
 		#disable movement with mouse
 		viz.mouse.setScale(0,0)
@@ -103,7 +134,7 @@ class BalloonTrial:
 		#call initializeRendering() static method
 		BalloonTrial.initializeRendering()
 		
-		BalloonTrial.piazza = viz.addChild('piazza_edited2.osgb')
+		
 
 		for i in range(len(self.stimuliLocations)):
 			balloon = viz.addChild('balloon3.osgb')
@@ -196,10 +227,16 @@ class BalloonTrial:
 	
 	def setBalloonsPosition(self):
 		"""
-		Set positions of the balloons(stimuli).
+		Set positions of the balloons(stimuli) with a random displacement applied.
 		"""
 		for i in range(len(self.stimuliLocations)):
-			BalloonTrial.balloons[i].setPosition(self.stimuliLocations[i])
+			randomDisplacement = [0,0,0]
+			for j in range(len(self.stimuliLocations[i])):
+				randomDisplacement[j] = maxDisplacement * random.random() * random.choice([1,-1])
+			print("displacement: " + str(randomDisplacement))
+			location = map(self.addMapper, self.stimuliLocations[i], randomDisplacement)
+			print("location: " + str(location))
+			BalloonTrial.balloons[i].setPosition(location)
 		
 	
 	def hideBalloons(self):
@@ -210,19 +247,55 @@ class BalloonTrial:
 			BalloonTrial.balloons[i].setPosition([0,0,-100])
 
 		
-	def startTrial(self, balloon, d=direction):
+	def startTrial(self, balloon, d=direction, callback = None):
 		"""
 		Starts a trial.
 		"""
 		print "===Trial Starts==="
+		BalloonTrial.liftFog(viz.MainScene)
 		print "Set balloon positions."
 		self.setBalloonsPosition()
-		print "Wait for " + str(self.startWaitTime) + " second(s)."
-		timer = threading.Timer(self.startWaitTime, self.startMoving, [balloon, d])
-		timer.start()
+		#wait at the start of trial
+		self.wait(self.startWaitTime)
+		#start movement by adding the action into queue
+		self.startMoving(balloon, d)
+		
+		#print "Wait for " + str(self.startWaitTime) + " second(s)."
+		#timer = threading.Timer(self.startWaitTime, self.startMoving, [balloon, d])
+		#timer.start()
+		
+		if callback != None:
+			BalloonTrial.addFunctionAction(balloon, callback)
+		
+		
 		return
 		
+	@staticmethod
+	def addFunctionAction(obj,func):
+		funcAct = vizact.call(func)
+		obj.addAction(funcAct)
 		
+	def wait(self,waitTime):
+		"""
+		Wait for waitTime seconds. 
+		"""
+		
+		print "Ballons Waiting for " + str(waitTime) + " seconds"
+		print "View Waiting for " + str(waitTime) + " seconds"
+		wait = vizact.waittime(waitTime)
+
+		#if using device
+		if(BalloonTrial.device == constants.MONITOR):
+			viz.MainView.addAction(wait)
+		
+		#if using HMD/EGG
+		if (BalloonTrial.device == constants.HMD or BalloonTrial.device == constants.EGG):
+			transportNode = BalloonTrial.transport.getNode3d()
+			transportNode.clearActions()
+			transportNode.addAction(wait)
+	
+		for i in range(len(BalloonTrial.balloons)):
+			BalloonTrial.balloons[i].addAction(wait)
 		
 	def startMoving(self, balloon, d=direction):
 		"""
@@ -231,6 +304,7 @@ class BalloonTrial:
 		
 		print "Ballons Moving in direction " + str(self.direction)
 		print "View Moving in direction " + str(self.viewDirection)
+		print "Trial Duration: " + str(BalloonTrial.trialDuration) + "s"
 		
 		#move view
 		#if using device
@@ -239,11 +313,14 @@ class BalloonTrial:
 		
 		#if using HMD/EGG
 		if (BalloonTrial.device == constants.HMD or BalloonTrial.device == constants.EGG):
-			BalloonTrial.transport.getNode3d().addAction(vizact.move(self.viewDirection, BalloonTrial.trialDuration))
+			transportNode = BalloonTrial.transport.getNode3d()
+			transportNode.addAction(vizact.move(self.viewDirection, BalloonTrial.trialDuration))
 		
+
 		balloon.addAction(vizact.move(self.direction, BalloonTrial.trialDuration))
-		timer = threading.Timer(BalloonTrial.trialDuration, self.resetPositions)
-		timer.start()
+		balloon.addAction(vizact.call(self.resetPositions))
+		#timer = threading.Timer(BalloonTrial.trialDuration, self.resetPositions)
+		#timer.start()
 		return
 
 
@@ -253,12 +330,14 @@ class BalloonTrial:
 		"""
 		
 		print "===Trial Resets==="
-		self.hideBalloons()
+		BalloonTrial.applyFog(viz.MainScene)
+		#self.hideBalloons()
 		viz.MainView.setPosition(BalloonTrial.startPosition)
 		viz.MainView.velocity([0,0,0])
 		
 		#if using HMD/EGG
 		if (BalloonTrial.device == "HMD" or BalloonTrial.device == "EGG"):
+			BalloonTrial.transport.getNode3d().setVelocity([0,0,0])
 			BalloonTrial.transport.getNode3d().setPosition(BalloonTrial.startPosition)
 
 
@@ -277,7 +356,10 @@ class BalloonTrial:
 		
 		self.viewDirection = map(self.viewSpeedmapper, d)
 		print "View direction is set to " + str(d)
-
+	
+	def addMapper(self, a,b):
+		return a + b
+	
 	def viewSpeedmapper(self,i):
 		"""
 		Return the magnified viewSpeed. Used for mapping.
@@ -286,7 +368,7 @@ class BalloonTrial:
 		return float(i) * self.viewSpeed
 
 
-	def __init__(self, balloonDirections=None, viewDirections=None, viewSpeed=None, expSet = "A1", fovMask = False, startWaitTime = 0, device=None, mode=None):
+	def __init__(self, balloonDirections=None, viewDirections=None, viewSpeed=None, expSet = "A1", fovMask = False, startWaitTime = trialWaitTime, device=None, mode=None):
 		
 		
 		#add itself into list
@@ -302,7 +384,7 @@ class BalloonTrial:
 			BalloonTrial.setDevice(device)
 		if(mode!=None):
 			BalloonTrial.setMode(mode)
-		if(viewSpeed != None):
+		if(viewSpeed == None):
 			viewSpeed = viewMovingSpeed
 			
 		self.setAllowedBalloonDirection(balloonDirections)
@@ -340,7 +422,7 @@ def directionEqual(d1,d2):
 
 if __name__ == "__main__":
 	
-	bt = BalloonTrial(device="Monitor", mode="STEREO")
+	bt = BalloonTrial(device="Monitor", mode="MONO")
 	
 	bt.startScene()
 	#bt.applyCircMasking()

@@ -19,7 +19,7 @@ BalloonStaircaseB(('left'),
 	BalloonTrial(
 		balloonDirections=[BalloonTrial.up],
 		viewDirections=[BalloonTrial.forward],
-		viewSpeed=.5,
+		viewSpeed=2,
 		expSet='B-l',
 		startWaitTime = .5),
 	foldername=directory)
@@ -28,7 +28,7 @@ BalloonStaircaseB(('right'),
 	BalloonTrial(
 		balloonDirections=[BalloonTrial.up],
 		viewDirections=[BalloonTrial.forward],
-		viewSpeed=.5,
+		viewSpeed=2,
 		expSet='B-r',
 		startWaitTime = .5),
 	foldername=directory,

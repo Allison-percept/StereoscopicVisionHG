@@ -16,10 +16,17 @@ class BalloonStaircaseB(AbstractBalloonStaircase):
 	#indicates whether the stimulus is on the left side
 	leftSide = True
 	
-	def __init__(self, suffix='', bt=BalloonTrial(), observer='hy', foldername='output', leftSide = True):
-		super(BalloonStaircaseB, self).__init__(suffix, bt, observer, foldername)
-		self.leftSide = leftSide
+
 		
+	def initialize(self):
+		if (self.ori== 'L' ):
+			self.leftSide = True
+		elif (self.ori == 'R'):
+			self.leftSide = False
+		else:
+			self.ori = 'L'
+			self.leftSide = True
+
 
 	def createOutputFileHeader(self):
 		#the columns header of output file in csv format
@@ -28,14 +35,14 @@ class BalloonStaircaseB(AbstractBalloonStaircase):
 	def createStaircase(self):
 		# create the staircase handler
 		self.staircase = data.QuestHandler(startVal=0.0, 
-							startValSd=0.2,
+							startValSd=0.5,
 							pThreshold=0.5,
 							gamma=0,
 							stimScale='linear',
 							stopInterval=.1, nTrials=100, minVal=-3, maxVal=3)
 
 	def trial(self):
-		print("StaircaseB "+ self.suffix +" is running")
+		print("StaircaseB "+ self.fileName +" is running")
 		#reset the balloon positions (could be on the different side!)
 		self.bt.resetPositions()
 		
@@ -136,13 +143,13 @@ class BalloonStaircaseB(AbstractBalloonStaircase):
 				else:
 					thisResp = 0
 			# add the data to the staircase so it can calculate the next level
-			print respKey.key
+			print "Response key: " + str(respKey.key)
 			staircase.addResponse(thisResp)
-			print targetIndex
-			print thisIncrement
-			print thisResp
-			print objDirection
-			print viewDirection
+			print "Target Index: " + str(targetIndex)
+			print "thisIncrement: " + str(thisIncrement)
+			print "thisResp: " + str(thisResp)
+			print "objDirection: " + str(objDirection)
+			print "viewDirection: " + str(viewDirection)
 			dataFile.write('%5f,%s,%5f\n' %(thisIncrement, outputResp, verticalSpeed))
 			#continue next trial from a random staircase in the list
 			nextStaircase = random.choice(BalloonStaircaseB.bStaircases)
@@ -154,14 +161,19 @@ class BalloonStaircaseB(AbstractBalloonStaircase):
 
 if __name__ == "__main__":
 	directory="output"
-	BalloonStaircaseB(('right'), 
+	BalloonStaircaseB(
 		BalloonTrial(
 			balloonDirections=[BalloonTrial.up],
 			viewDirections=[BalloonTrial.forward],
 			viewSpeed=.5,
+			device="Monitor",
 			expSet='B-r'),
 		foldername=directory,
-		leftSide = False)
+		observer='Hongyi',
+		mode = 'STEREO',
+		stair = 'U',
+		series = 'B',
+		ori='R')
 	BalloonStaircaseB.start()
 
 	
